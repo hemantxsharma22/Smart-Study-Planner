@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study Planner — B.Tech CSE-DS | NIET</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap');
+
+  :root {
+    --navy:   #0D1B2A;
+    --indigo: #1A2E4A;
+    --teal:   #0E7C7B;
+    --cyan:   #17C3B2;
+    --amber:  #F5A623;
+    --rose:   #E84855;
+    --cream:  #F0F4F8;
+    --white:  #FFFFFF;
+    --muted:  #8899AA;
+    --glass:  rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.10);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--navy);
+    color: var(--cream);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5rem;
+    height: 64px;
+    background: rgba(13,27,42,0.85);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+  }
+  .nav-logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.25rem;
+    color: var(--cyan);
+    letter-spacing: 0.01em;
+  }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 7rem 2.5rem 4rem;
+    overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(14,124,123,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14,124,123,0.08) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 0%, transparent 100%);
+  }
+  .hero-glow {
+    position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(23,195,178,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.15em;
+    color: var(--cyan); text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .hero-eyebrow span { color: var(--muted); }
+  .hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    max-width: 820px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title em { font-style: italic; color: var(--cyan); }
+  .hero-sub {
+    font-size: 1.05rem; color: var(--muted); max-width: 560px;
+    line-height: 1.7; margin-bottom: 3rem;
+  }
+  .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 0.85rem 2rem;
+    background: var(--teal);
+    color: var(--white);
+    border: none; border-radius: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+  }
+  .btn-primary:hover { background: var(--cyan); transform: translateY(-2px); }
+  .btn-ghost {
+    padding: 0.85rem 2rem;
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+  }
+  .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+  .hero-stats {
+    display: flex; gap: 3rem; margin-top: 4rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .stat-item { }
+  .stat-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2.4rem; line-height: 1;
+    color: var(--white);
+  }
+  .stat-label {
+    font-size: 0.78rem; color: var(--muted);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+
+  /* ── SECTION SHELL ── */
+  section { position: relative; padding: 6rem 2.5rem; }
+  .section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.12; margin-bottom: 1rem;
+  }
+  .section-body {
+    color: var(--muted); font-size: 1rem;
+    line-height: 1.75; max-width: 640px;
+  }
+
+  /* ── ARCHITECTURE SECTION ── */
+  #architecture { background: var(--indigo); }
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5px;
+    margin-top: 3.5rem;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .arch-card {
+    background: var(--glass);
+    padding: 2rem;
+    border: none;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .arch-card:hover { background: rgba(14,124,123,0.12); }
+  .arch-card-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 0.75rem;
+    display: inline-block;
+  }
+  .arch-card h3 {
+    font-size: 1.05rem; font-weight: 600;
+    margin-bottom: 0.5rem; color: var(--white);
+  }
+  .arch-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.65; }
+  .arch-pill {
+    margin-top: 1rem;
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+  }
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    background: rgba(14,124,123,0.18);
+    color: var(--cyan);
+    border: 1px solid rgba(23,195,178,0.2);
+  }
+
+  /* ── OOP CONCEPTS SECTION ── */
+  #oop { }
+  .oop-table-wrap {
+    margin-top: 3rem;
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  thead { background: rgba(14,124,123,0.25); }
+  thead th {
+    padding: 1rem 1.25rem;
+    text-align: left; font-weight: 600;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  tbody tr { border-top: 1px solid var(--border); }
+  tbody tr:hover { background: var(--glass); }
+  tbody td { padding: 0.9rem 1.25rem; color: var(--muted); line-height: 1.6; vertical-align: top; }
+  tbody td:first-child { color: var(--white); font-weight: 600; white-space: nowrap; }
+  tbody td code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; color: var(--amber);
+    background: rgba(245,166,35,0.08);
+    padding: 0.1rem 0.4rem; border-radius: 4px;
+  }
+
+  /* ── MODULES SECTION ── */
+  #modules { background: var(--indigo); }
+  .modules-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+  .module-item {
+    display: flex; gap: 1.25rem;
+    padding: 1.5rem;
+    background: var(--glass);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .module-item:hover { border-color: var(--teal); transform: translateY(-3px); }
+  .module-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2rem; color: rgba(23,195,178,0.25);
+    line-height: 1; flex-shrink: 0; width: 2rem;
+    text-align: center;
+    font-style: italic;
+  }
+  .module-content h3 { font-size: 0.95rem; font-weight: 600; color: var(--white); margin-bottom: 0.4rem; }
+  .module-content p  { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── DEMO SECTION (Live interactive terminal) ── */
+  #demo { }
+  .demo-wrapper {
+    margin-top: 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media(max-width:860px){ .demo-wrapper{ grid-template-columns:1fr; } }
+  .demo-panel {
+    background: #0A1520;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .demo-titlebar {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.85rem 1.25rem;
+    background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: var(--rose); }
+  .dot-a { background: var(--amber); }
+  .dot-g { background: #30D158; }
+  .demo-title-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; color: var(--muted);
+    margin-left: 0.5rem;
+  }
+  #terminal {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; line-height: 1.75;
+    padding: 1.5rem;
+    min-height: 360px;
+    overflow-y: auto;
+    color: #A8D5CA;
+    white-space: pre-wrap;
+  }
+  #terminal .prompt { color: var(--cyan); }
+  #terminal .log    { color: var(--muted); }
+  #terminal .ok     { color: #30D158; }
+  #terminal .err    { color: var(--rose); }
+  #terminal .amber  { color: var(--amber); }
+  #terminal .white  { color: var(--white); }
+  .demo-controls { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .demo-btn {
+    padding: 0.65rem 1rem;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--cream);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.82rem; font-weight: 500;
+    cursor: pointer; text-align: left;
+    transition: border-color 0.2s, background 0.2s;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .demo-btn:hover { border-color: var(--teal); background: rgba(14,124,123,0.15); }
+  .demo-btn .demo-icon { font-size: 1.1rem; }
+  .demo-btn .demo-sub { font-size: 0.72rem; color: var(--muted); display: block; }
+  .demo-controls-title {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); padding: 0 1.25rem 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── CODE SECTION ── */
+  #code { background: var(--indigo); }
+  .code-tabs {
+    display: flex; gap: 0; margin-top: 2.5rem;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .code-tab {
+    padding: 0.6rem 1.1rem;
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; cursor: pointer;
+    transition: color 0.2s; white-space: nowrap;
+  }
+  .code-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .code-block {
+    display: none;
+    background: #080F1A;
+    border-radius: 0 0 10px 10px;
+    border: 1px solid var(--border); border-top: none;
+    padding: 1.5rem;
+    overflow-x: auto;
+  }
+  .code-block.active { display: block; }
+  .code-block pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    color: #A8D5CA;
+    margin: 0;
+  }
+  .kw  { color: #C792EA; }
+  .fn  { color: #82AAFF; }
+  .str { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .cls { color: var(--amber); }
+  .dec { color: var(--cyan); }
+
+  /* ── PERFORMANCE SECTION ── */
+  #performance { }
+  .perf-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+  .perf-card {
+    padding: 1.75rem;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .perf-card:hover { transform: translateY(-4px); }
+  .perf-score {
+    font-family: 'Instrument Serif', serif;
+    font-size: 3rem; line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .perf-grade {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .perf-label { font-size: 0.82rem; color: var(--muted); }
+  .perf-bar-wrap { margin-top: 2.5rem; }
+  .perf-bar-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.9rem; }
+  .perf-bar-label { font-size: 0.82rem; color: var(--muted); width: 130px; flex-shrink: 0; }
+  .perf-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+  .perf-bar-fill { height: 100%; border-radius: 99px; transition: width 1.5s cubic-bezier(.4,0,.2,1); width: 0; }
+  .perf-bar-val { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--cyan); width: 40px; text-align: right; }
+
+  /* ── TEAM SECTION ── */
+  #team { background: var(--indigo); }
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .team-card {
+    padding: 1.75rem;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+  }
+  .team-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--cyan));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.5rem; color: var(--white);
+    margin: 0 auto 1rem;
+    font-style: italic;
+  }
+  .team-name { font-weight: 600; color: var(--white); margin-bottom: 0.3rem; }
+  .team-role { font-size: 0.78rem; color: var(--muted); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 2.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-left { font-size: 0.82rem; color: var(--muted); }
+  .footer-right { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.7s ease both; }
+  .fade-up-1 { animation-delay: 0.1s; }
+  .fade-up-2 { animation-delay: 0.25s; }
+  .fade-up-3 { animation-delay: 0.4s; }
+  .fade-up-4 { animation-delay: 0.55s; }
+
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+  .cursor { animation: cursor-blink 1s step-end infinite; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--indigo); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SmartStudyPlanner</div>
+  <div class="nav-links">
+    <a href="#architecture">Design</a>
+    <a href="#oop">Concepts</a>
+    <a href="#modules">Modules</a>
+    <a href="#demo">Demo</a>
+    <a href="#code">Code</a>
+    <a href="#team">Team</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div style="position:relative">
+    <p class="hero-eyebrow fade-up">B.Tech CSE-DS · NIET Greater Noida · <span>Python OOP Project</span></p>
+    <h1 class="hero-title fade-up fade-up-1">
+      A <em>smarter</em> way to plan, track, and master your studies.
+    </h1>
+    <p class="hero-sub fade-up fade-up-2">
+      A Python-based academic management system built on 11 classes, full OOP principles, and advanced language features — designed for students who mean business.
+    </p>
+    <div class="hero-cta fade-up fade-up-3">
+      <a href="#demo" class="btn-primary">▶ Try the Live Demo</a>
+      <a href="#code" class="btn-ghost">&lt;/&gt; View Source Code</a>
+    </div>
+    <div class="hero-stats fade-up fade-up-4">
+      <div class="stat-item">
+        <div class="stat-num">11</div>
+        <div class="stat-label">Python Classes</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">8</div>
+        <div class="stat-label">Feature Modules</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">10+</div>
+        <div class="stat-label">OOP Concepts</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">5</div>
+        <div class="stat-label">Advanced Features</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <p class="section-eyebrow">System Design</p>
+  <h2 class="section-title">Class Hierarchy &amp; Architecture</h2>
+  <p class="section-body">
+    Built around a clean inheritance tree with <code style="font-family:'JetBrains Mono',monospace;color:var(--amber);background:rgba(245,166,35,.08);padding:.1rem .4rem;border-radius:4px">Person</code> as the abstract base, and Composition to integrate all domain classes into one orchestrator.
+  </p>
+  <div class="arch-grid">
+    <div class="arch-card">
+      <span class="arch-card-tag">Abstract Base</span>
+      <h3>Person</h3>
+      <p>Defines the contract for all user-type objects via ABCMeta. Holds private identity attributes with name-mangling encapsulation.</p>
+      <div class="arch-pill">
+        <span class="pill">ABCMeta</span><span class="pill">@abstractmethod</span><span class="pill">__str__</span><span class="pill">__repr__</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <span class="arch-card-tag">Derived — Inheritance</span>
+      <h3>Student</h3>
+      <p>Extends Person with academic profile, schedule list, completed topics (set), and study goals (list).</p>
+      <div class="arch-pill">
+        <span class="pill">super().__init__</span><span class="pill">set</span><span class="pill">list</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <span class="arch-card-tag">Derived — Inheritance</span>
+      <h3>Mentor</h3>
+      <p>Extends Person with specialization. Can review and suggest improvements for Student progress polymorphically.</p>
+      <div class="arch-pill">
+        <span class="pill">Polymorphism</span><span class="pill">display_details()</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <span class="arch-card-tag">Domain Class</span>
+      <h3>Subject &amp; Topic</h3>
+      <p>Subject is a container for Topic objects with priority-based sorting. __len__ returns topic count directly.</p>
+      <div class="arch-pill">
+        <span class="pill">__len__</span><span class="pill">priority</span><span class="pill">completion_status</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <span class="arch-card-tag">Domain Class</span>
+      <h3>StudyPlan &amp; Assignment</h3>
+      <p>StudyPlan uses @log_action decorator. Assignment uses @log_submission and tracks overdue status via datetime comparison.</p>
+      <div class="arch-pill">
+        <span class="pill">@log_action</span><span class="pill">@log_submission</span><span class="pill">is_overdue()</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <span class="arch-card-tag">Domain Class</span>
+      <h3>Reminder &amp; Report</h3>
+      <p>Both enforce valid categories via immutable TYPES tuple. Report exports to CSV with auto-generated filenames.</p>
+      <div class="arch-pill">
+        <span class="pill">tuple</span><span class="pill">ValueError</span><span class="pill">csv.writer</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <span class="arch-card-tag">Domain Class</span>
+      <h3>Performance</h3>
+      <p>Static methods for productivity score and grade calculation. Class method for aggregate statistics across multiple records.</p>
+      <div class="arch-pill">
+        <span class="pill">@staticmethod</span><span class="pill">@classmethod</span><span class="pill">ZeroDivisionError</span>
+      </div>
+    </div>
+    <div class="arch-card">
+      <span class="arch-card-tag">Orchestrator — Composition</span>
+      <h3>SmartStudyPlanner</h3>
+      <p>Central hub. Holds all domain objects via composition. Provides generators, lambda sorts, recursive search, and JSON/CSV persistence.</p>
+      <div class="arch-pill">
+        <span class="pill">Composition</span><span class="pill">generator</span><span class="pill">lambda</span><span class="pill">json</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- OOP CONCEPTS -->
+<section id="oop">
+  <p class="section-eyebrow">Technical Implementation</p>
+  <h2 class="section-title">OOP &amp; Advanced Python Concepts</h2>
+  <p class="section-body">Every major concept is deliberately applied and traceable to a specific class or method in the source.</p>
+  <div class="oop-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Concept</th>
+          <th>Where Implemented</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Abstraction</td><td><code>Person</code> (ABCMeta)</td><td>Abstract base class with <code>@abstractmethod display_details()</code> — subclasses cannot skip it or a TypeError fires at instantiation.</td></tr>
+        <tr><td>Encapsulation</td><td><code>Person.__name</code>, <code>.__email</code></td><td>Private attributes via Python name-mangling. Controlled read access through <code>@property</code> decorators only.</td></tr>
+        <tr><td>Inheritance</td><td><code>Student(Person)</code>, <code>Mentor(Person)</code></td><td>Two-level hierarchy using <code>super().__init__()</code> to ensure parent attributes are correctly initialised.</td></tr>
+        <tr><td>Polymorphism</td><td><code>display_details()</code></td><td>Same method call produces different output depending on whether the runtime type is Student or Mentor.</td></tr>
+        <tr><td>Composition</td><td><code>SmartStudyPlanner</code></td><td>"Has-a" relationship. Planner holds instances of all domain objects rather than inheriting from them.</td></tr>
+        <tr><td>Static Methods</td><td><code>Performance.productivity_score()</code></td><td>Callable without object creation. Formula: <code>(completed_tasks / study_hours) × 10</code> with ZeroDivisionError guard.</td></tr>
+        <tr><td>Class Methods</td><td><code>Performance.overall_statistics()</code></td><td>Receives <code>cls</code> as first argument. Aggregates total hours and tasks across a list of Performance instances.</td></tr>
+        <tr><td>Magic Methods</td><td>All classes</td><td><code>__str__</code>, <code>__repr__</code> everywhere; <code>__len__</code> in Subject (topic count) and SmartStudyPlanner (subject count).</td></tr>
+        <tr><td>Decorators</td><td><code>@log_action</code>, <code>@log_submission</code>, <code>@log_report</code></td><td>Cross-cutting logging concern separated from business logic. Applied to schedule, assignment, and report methods.</td></tr>
+        <tr><td>Generators</td><td><code>pending_assignments_gen()</code></td><td>Generator expression yields pending assignments one at a time — O(1) memory regardless of collection size.</td></tr>
+        <tr><td>Lambda Functions</td><td><code>sorted_subjects()</code>, <code>sorted_assignments()</code>, <code>sorted_plans()</code></td><td>Concise key extraction in <code>sorted()</code> calls. Sorts by priority, due_date, and study_hours respectively.</td></tr>
+        <tr><td>List Comprehensions</td><td><code>pending_assignments_list()</code></td><td>Pythonic filtering: <code>[a.title for a in self.assignments if a.status == 'Pending']</code></td></tr>
+        <tr><td>Recursive Function</td><td><code>search_subject(name, subjects, index)</code></td><td>Case-insensitive recursive linear search. Base cases: index out of bounds (None) or name matched (return Subject).</td></tr>
+        <tr><td>File Handling</td><td><code>save_data()</code>, <code>load_data()</code>, <code>export_report()</code></td><td>JSON for structured student/assignment data; CSV via <code>csv.writer</code> for report exports.</td></tr>
+        <tr><td>Exception Handling</td><td>All menu handlers</td><td><code>ValueError</code>, <code>FileNotFoundError</code>, <code>KeyError</code>, <code>ZeroDivisionError</code>; broad catch-all at menu level for stability.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- MODULES -->
+<section id="modules">
+  <p class="section-eyebrow">Feature Breakdown</p>
+  <h2 class="section-title">8 Functional Modules</h2>
+  <p class="section-body">Each module handles one clearly defined domain. No module is mandatory — the design accommodates incremental, real-world usage patterns.</p>
+  <div class="modules-list">
+    <div class="module-item">
+      <div class="module-num">1</div>
+      <div class="module-content">
+        <h3>Student Management</h3>
+        <p>Registration, profile management, goal setting. Student ID is the O(1) dictionary key for all downstream operations.</p>
+      </div>
+    </div>
+    <div class="module-item">
+      <div class="module-num">2</div>
+      <div class="module-content">
+        <h3>Subject Management</h3>
+        <p>Add subjects (priority 1–5), add topics, search recursively by name, sort by priority with lambda.</p>
+      </div>
+    </div>
+    <div class="module-item">
+      <div class="module-num">3</div>
+      <div class="module-content">
+        <h3>Study Schedule</h3>
+        <p>Daily / weekly / monthly plans. @log_action decorates generate_plan(). Sort plans by study hours.</p>
+      </div>
+    </div>
+    <div class="module-item">
+      <div class="module-num">4</div>
+      <div class="module-content">
+        <h3>Assignment Management</h3>
+        <p>Add assignments with deadlines, detect overdue items via datetime, mark completed, log every action.</p>
+      </div>
+    </div>
+    <div class="module-item">
+      <div class="module-num">5</div>
+      <div class="module-content">
+        <h3>Goal Management</h3>
+        <p>Store short-term and long-term goals as text in the student's profile. View and add at any point.</p>
+      </div>
+    </div>
+    <div class="module-item">
+      <div class="module-num">6</div>
+      <div class="module-content">
+        <h3>Reminder Management</h3>
+        <p>Type-safe reminders (Study / Exam / Assignment / Goal) validated against TYPES tuple. Datetime comparison triggers alerts.</p>
+      </div>
+    </div>
+    <div class="module-item">
+      <div class="module-num">7</div>
+      <div class="module-content">
+        <h3>Performance Analysis</h3>
+        <p>Productivity score = (tasks / hours) × 10. Grade A+ to D. Class method for aggregate statistics.</p>
+      </div>
+    </div>
+    <div class="module-item">
+      <div class="module-num">8</div>
+      <div class="module-content">
+        <h3>Report Generation</h3>
+        <p>Daily / Weekly / Monthly / Performance reports. @log_report decorator. Auto-named CSV export.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- DEMO -->
+<section id="demo">
+  <p class="section-eyebrow">Interactive Demo</p>
+  <h2 class="section-title">Live Application Walkthrough</h2>
+  <p class="section-body">Click any scenario below to see the application output exactly as it appears in the terminal.</p>
+  <div class="demo-wrapper">
+    <div class="demo-panel">
+      <div class="demo-titlebar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-a"></div>
+        <div class="dot dot-g"></div>
+        <span class="demo-title-text">python main.py</span>
+      </div>
+      <div id="terminal"></div>
+    </div>
+    <div>
+      <div class="demo-controls-title">Choose a scenario</div>
+      <div class="demo-controls">
+        <button class="demo-btn" onclick="runDemo('menu')">
+          <span class="demo-icon">📋</span>
+          <span>
+            Main Menu
+            <span class="demo-sub">Show the full application menu</span>
+          </span>
+        </button>
+        <button class="demo-btn" onclick="runDemo('register')">
+          <span class="demo-icon">👤</span>
+          <span>
+            Register Student
+            <span class="demo-sub">Create student profile with validation</span>
+          </span>
+        </button>
+        <button class="demo-btn" onclick="runDemo('schedule')">
+          <span class="demo-icon">📅</span>
+          <span>
+            Create Study Schedule
+            <span class="demo-sub">@log_action decorator in action</span>
+          </span>
+        </button>
+        <button class="demo-btn" onclick="runDemo('assignment')">
+          <span class="demo-icon">📝</span>
+          <span>
+            Add Assignment
+            <span class="demo-sub">@log_submission + overdue detection</span>
+          </span>
+        </button>
+        <button class="demo-btn" onclick="runDemo('performance')">
+          <span class="demo-icon">📊</span>
+          <span>
+            Performance Analysis
+            <span class="demo-sub">Productivity score + grade calculation</span>
+          </span>
+        </button>
+        <button class="demo-btn" onclick="runDemo('report')">
+          <span class="demo-icon">📄</span>
+          <span>
+            Generate Report
+            <span class="demo-sub">@log_report + CSV export</span>
+          </span>
+        </button>
+        <button class="demo-btn" onclick="runDemo('save')">
+          <span class="demo-icon">💾</span>
+          <span>
+            Save &amp; Load Data
+            <span class="demo-sub">JSON persistence across sessions</span>
+          </span>
+        </button>
+        <button class="demo-btn" onclick="runDemo('error')">
+          <span class="demo-icon">⚠️</span>
+          <span>
+            Exception Handling
+            <span class="demo-sub">ValueError, FileNotFoundError</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CODE -->
+<section id="code">
+  <p class="section-eyebrow">Source Code</p>
+  <h2 class="section-title">Key Implementation Files</h2>
+  <p class="section-body">11 files, one class per file. Here are the most architecturally significant ones:</p>
+  <div class="code-tabs">
+    <button class="code-tab active" onclick="switchTab('person')">person.py</button>
+    <button class="code-tab" onclick="switchTab('student')">student.py</button>
+    <button class="code-tab" onclick="switchTab('planner')">smart_study_planner.py</button>
+    <button class="code-tab" onclick="switchTab('performance')">performance.py</button>
+    <button class="code-tab" onclick="switchTab('assignment')">assignment.py</button>
+    <button class="code-tab" onclick="switchTab('main')">main.py (excerpt)</button>
+  </div>
+
+  <div id="tab-person" class="code-block active">
+    <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="cls">Person</span>(ABC):
+    <span class="str">"""Abstract base class representing any person in the system."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, person_id, name, email, mobile_number):
+        self.__person_id     = person_id   <span class="cm"># name-mangled: _Person__person_id</span>
+        self.__name          = name
+        self.__email         = email
+        self.__mobile_number = mobile_number
+
+    <span class="dec">@property</span>
+    <span class="kw">def</span> <span class="fn">person_id</span>(self): <span class="kw">return</span> self.__person_id
+
+    <span class="dec">@property</span>
+    <span class="kw">def</span> <span class="fn">name</span>(self): <span class="kw">return</span> self.__name
+
+    <span class="dec">@property</span>
+    <span class="kw">def</span> <span class="fn">email</span>(self): <span class="kw">return</span> self.__email
+
+    <span class="dec">@abstractmethod</span>           <span class="cm"># subclasses MUST implement this</span>
+    <span class="kw">def</span> <span class="fn">display_details</span>(self): <span class="kw">pass</span>
+
+    <span class="kw">def</span> <span class="fn">update_details</span>(self, name=<span class="kw">None</span>, email=<span class="kw">None</span>, mobile=<span class="kw">None</span>):
+        <span class="kw">if</span> name:   self.__name          = name
+        <span class="kw">if</span> email:  self.__email         = email
+        <span class="kw">if</span> mobile: self.__mobile_number = mobile
+
+    <span class="kw">def</span> <span class="fn">__str__</span>(self):
+        <span class="kw">return</span> <span class="str">f"Person[{self.__person_id}]: {self.__name} &lt;{self.__email}&gt;"</span>
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(self):
+        <span class="kw">return</span> <span class="str">f"Person(id={self.__person_id!r}, name={self.__name!r})"</span></pre>
+  </div>
+
+  <div id="tab-student" class="code-block">
+    <pre><span class="kw">from</span> person <span class="kw">import</span> Person
+
+<span class="kw">class</span> <span class="cls">Student</span>(Person):                   <span class="cm"># Inheritance from abstract Person</span>
+    <span class="str">"""Represents a student; inherits from Person."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, person_id, name, email, mobile_number,
+                 student_id, course, semester):
+        <span class="fn">super()</span>.__init__(person_id, name, email, mobile_number)
+        self.student_id       = student_id
+        self.course           = course
+        self.semester         = semester
+        self.study_goals      = []          <span class="cm"># list — ordered, allows dupes</span>
+        self.schedule         = []          <span class="cm"># list of StudyPlan objects</span>
+        self.completed_topics = <span class="fn">set</span>()       <span class="cm"># set — auto-deduplication O(1) lookup</span>
+
+    <span class="kw">def</span> <span class="fn">display_details</span>(self):             <span class="cm"># Polymorphism — own implementation</span>
+        <span class="fn">print</span>(<span class="str">f"Student: {self.name}  │  Course: {self.course}  │  Sem: {self.semester}"</span>)
+
+    <span class="kw">def</span> <span class="fn">create_schedule</span>(self, study_plan):
+        self.schedule.<span class="fn">append</span>(study_plan)
+        <span class="fn">print</span>(<span class="str">f"Schedule created for {self.name}."</span>)
+
+    <span class="kw">def</span> <span class="fn">track_progress</span>(self):              <span class="cm"># Returns dict — separates data from display</span>
+        completed = <span class="fn">len</span>(self.completed_topics)
+        <span class="kw">return</span> {<span class="str">"completed_topics"</span>: completed, <span class="str">"goals"</span>: self.study_goals}
+
+    <span class="kw">def</span> <span class="fn">__str__</span>(self):
+        <span class="kw">return</span> <span class="str">f"Student[{self.student_id}]: {self.name} - {self.course}, Sem {self.semester}"</span></pre>
+  </div>
+
+  <div id="tab-planner" class="code-block">
+    <pre><span class="kw">import</span> json, os
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, date
+
+<span class="kw">class</span> <span class="cls">SmartStudyPlanner</span>:                 <span class="cm"># Composition — no inheritance</span>
+    <span class="str">"""Core application class: aggregates all domain objects."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.students            = {}      <span class="cm"># dict: student_id → Student (O(1) lookup)</span>
+        self.subjects            = []
+        self.study_plans         = []
+        self.assignments         = []
+        self.reminders           = []
+        self.reports             = []
+        self._subject_categories = <span class="fn">set</span>()  <span class="cm"># _ prefix = internal use convention</span>
+
+    <span class="cm"># ── Lambda-based sorts ──</span>
+    <span class="kw">def</span> <span class="fn">sorted_subjects</span>(self):
+        <span class="kw">return</span> <span class="fn">sorted</span>(self.subjects,    key=<span class="kw">lambda</span> s: s.priority)
+
+    <span class="kw">def</span> <span class="fn">sorted_assignments</span>(self):
+        <span class="kw">return</span> <span class="fn">sorted</span>(self.assignments,  key=<span class="kw">lambda</span> a: a.due_date)
+
+    <span class="kw">def</span> <span class="fn">sorted_plans</span>(self):
+        <span class="kw">return</span> <span class="fn">sorted</span>(self.study_plans,  key=<span class="kw">lambda</span> p: p.study_hours)
+
+    <span class="cm"># ── Generator — memory-efficient iteration ──</span>
+    <span class="kw">def</span> <span class="fn">pending_assignments_gen</span>(self):
+        <span class="kw">return</span> (a <span class="kw">for</span> a <span class="kw">in</span> self.assignments <span class="kw">if</span> a.status == <span class="str">'Pending'</span>)
+
+    <span class="cm"># ── List comprehension ──</span>
+    <span class="kw">def</span> <span class="fn">pending_assignments_list</span>(self):
+        <span class="kw">return</span> [a.title <span class="kw">for</span> a <span class="kw">in</span> self.assignments <span class="kw">if</span> a.status == <span class="str">'Pending'</span>]
+
+    <span class="cm"># ── Recursive search ──</span>
+    <span class="kw">def</span> <span class="fn">search_subject</span>(self, name, subjects=<span class="kw">None</span>, index=0):
+        <span class="kw">if</span> subjects <span class="kw">is None</span>: subjects = self.subjects
+        <span class="kw">if</span> index >= <span class="fn">len</span>(subjects): <span class="kw">return None</span>   <span class="cm"># base case 1</span>
+        <span class="kw">if</span> subjects[index].subject_name.<span class="fn">lower</span>() == name.<span class="fn">lower</span>():
+            <span class="kw">return</span> subjects[index]                  <span class="cm"># base case 2</span>
+        <span class="kw">return</span> self.<span class="fn">search_subject</span>(name, subjects, index + 1)  <span class="cm"># recurse</span>
+
+    <span class="cm"># ── JSON persistence ──</span>
+    <span class="kw">def</span> <span class="fn">save_data</span>(self, filepath=<span class="str">'data.json'</span>):
+        data = {
+            <span class="str">'students'</span>:    [{<span class="str">'id'</span>: s.student_id, <span class="str">'name'</span>: s.name, ...} <span class="kw">for</span> s <span class="kw">in</span> self.students.<span class="fn">values</span>()],
+            <span class="str">'assignments'</span>: [{<span class="str">'id'</span>: a.assignment_id, <span class="str">'title'</span>: a.title, ...} <span class="kw">for</span> a <span class="kw">in</span> self.assignments]
+        }
+        <span class="kw">with</span> <span class="fn">open</span>(filepath, <span class="str">'w'</span>) <span class="kw">as</span> f: json.<span class="fn">dump</span>(data, f, indent=2)
+
+    <span class="kw">def</span> <span class="fn">__len__</span>(self): <span class="kw">return</span> <span class="fn">len</span>(self.subjects)</pre>
+  </div>
+
+  <div id="tab-performance" class="code-block">
+    <pre><span class="kw">class</span> <span class="cls">Performance</span>:
+    <span class="str">"""Tracks and analyses student academic performance."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, performance_id, study_hours, completed_tasks):
+        self.performance_id  = performance_id
+        self.study_hours     = study_hours
+        self.completed_tasks = completed_tasks
+
+    <span class="dec">@staticmethod</span>                          <span class="cm"># No instance needed — pure calculation</span>
+    <span class="kw">def</span> <span class="fn">productivity_score</span>(study_hours, completed_tasks):
+        <span class="kw">if</span> study_hours == 0: <span class="kw">return</span> 0       <span class="cm"># ZeroDivisionError guard</span>
+        <span class="kw">return</span> <span class="fn">round</span>((completed_tasks / study_hours) * 10, 2)
+
+    <span class="dec">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">calculate_grade</span>(score):
+        <span class="kw">if</span>   score >= 9: <span class="kw">return</span> <span class="str">'A+'</span>
+        <span class="kw">elif</span> score >= 8: <span class="kw">return</span> <span class="str">'A'</span>
+        <span class="kw">elif</span> score >= 7: <span class="kw">return</span> <span class="str">'B'</span>
+        <span class="kw">elif</span> score >= 6: <span class="kw">return</span> <span class="str">'C'</span>
+        <span class="kw">else</span>:            <span class="kw">return</span> <span class="str">'D'</span>
+
+    <span class="dec">@classmethod</span>                           <span class="cm"># Receives cls — aggregates instances</span>
+    <span class="kw">def</span> <span class="fn">overall_statistics</span>(cls, performances):
+        total_hours = <span class="fn">sum</span>(p.study_hours     <span class="kw">for</span> p <span class="kw">in</span> performances)
+        total_tasks = <span class="fn">sum</span>(p.completed_tasks <span class="kw">for</span> p <span class="kw">in</span> performances)
+        <span class="kw">return</span> {<span class="str">'total_hours'</span>: total_hours, <span class="str">'total_tasks'</span>: total_tasks}
+
+    <span class="kw">def</span> <span class="fn">generate_analysis</span>(self):
+        score = self.<span class="fn">calculate_productivity</span>()
+        grade = self.<span class="fn">calculate_grade</span>(score)
+        <span class="fn">print</span>(<span class="str">f"Performance[{self.performance_id}]: Score = {score},  Grade = {grade}"</span>)</pre>
+  </div>
+
+  <div id="tab-assignment" class="code-block">
+    <pre><span class="kw">from</span> datetime <span class="kw">import</span> date
+
+<span class="kw">def</span> <span class="fn">log_submission</span>(func):           <span class="cm"># Decorator factory</span>
+    <span class="str">"""Logs assignment-related actions without touching business logic."""</span>
+    <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+        <span class="fn">print</span>(<span class="str">f"[LOG] Assignment action: {func.__name__}"</span>)
+        <span class="kw">return</span> <span class="fn">func</span>(*args, **kwargs)
+    <span class="kw">return</span> wrapper
+
+<span class="kw">class</span> <span class="cls">Assignment</span>:
+    <span class="str">"""Manages lifecycle of academic work from creation to completion."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, assignment_id, title, due_date, status=<span class="str">'Pending'</span>):
+        self.assignment_id = assignment_id
+        self.title         = title
+        self.due_date      = due_date
+        self.status        = status
+
+    <span class="dec">@log_submission</span>                    <span class="cm"># Decorator applied — logs every add</span>
+    <span class="kw">def</span> <span class="fn">add_assignment</span>(self):
+        <span class="fn">print</span>(<span class="str">f"Assignment '{self.title}' added. Deadline: {self.due_date}"</span>)
+
+    <span class="dec">@log_submission</span>                    <span class="cm"># Logs every completion too</span>
+    <span class="kw">def</span> <span class="fn">mark_completed</span>(self):
+        self.status = <span class="str">'Completed'</span>
+        <span class="fn">print</span>(<span class="str">f"Assignment '{self.title}' marked as completed."</span>)
+
+    <span class="kw">def</span> <span class="fn">is_overdue</span>(self):               <span class="cm"># Only Pending items can be overdue</span>
+        <span class="kw">return</span> date.<span class="fn">today</span>() > self.due_date <span class="kw">and</span> self.status != <span class="str">'Completed'</span></pre>
+  </div>
+
+  <div id="tab-main" class="code-block">
+    <pre><span class="kw">def</span> <span class="fn">main</span>():
+    planner = <span class="cls">SmartStudyPlanner</span>()
+
+    <span class="kw">while</span> <span class="kw">True</span>:
+        <span class="fn">print</span>(<span class="str">'\n========== SMART STUDY PLANNER =========='</span>)
+        <span class="fn">print</span>(<span class="str">' 1. Student Management'</span>)
+        <span class="fn">print</span>(<span class="str">' 2. Subject Management'</span>)
+        <span class="fn">print</span>(<span class="str">' 3. Study Schedule Management'</span>)
+        <span class="fn">print</span>(<span class="str">' 4. Assignment Management'</span>)
+        <span class="fn">print</span>(<span class="str">' 5. Goal Management'</span>)
+        <span class="fn">print</span>(<span class="str">' 6. Reminder Management'</span>)
+        <span class="fn">print</span>(<span class="str">' 7. Performance Analysis'</span>)
+        <span class="fn">print</span>(<span class="str">' 8. Report Generation'</span>)
+        <span class="fn">print</span>(<span class="str">' 9. Save Data'</span>)
+        <span class="fn">print</span>(<span class="str">'10. Load Data'</span>)
+        <span class="fn">print</span>(<span class="str">'11. Exit'</span>)
+        choice = <span class="fn">input</span>(<span class="str">'Enter your choice: '</span>).<span class="fn">strip</span>()
+
+        <span class="kw">if</span>   choice == <span class="str">'1'</span>:  <span class="fn">student_menu</span>(planner)
+        <span class="kw">elif</span> choice == <span class="str">'2'</span>:  <span class="fn">subject_menu</span>(planner)
+        <span class="kw">elif</span> choice == <span class="str">'3'</span>:  <span class="fn">schedule_menu</span>(planner)
+        <span class="kw">elif</span> choice == <span class="str">'4'</span>:  <span class="fn">assignment_menu</span>(planner)
+        <span class="kw">elif</span> choice == <span class="str">'5'</span>:  <span class="fn">goal_menu</span>(planner)
+        <span class="kw">elif</span> choice == <span class="str">'6'</span>:  <span class="fn">reminder_menu</span>(planner)
+        <span class="kw">elif</span> choice == <span class="str">'7'</span>:  <span class="fn">performance_menu</span>(planner)
+        <span class="kw">elif</span> choice == <span class="str">'8'</span>:  <span class="fn">report_menu</span>(planner)
+        <span class="kw">elif</span> choice == <span class="str">'9'</span>:  planner.<span class="fn">save_data</span>()
+        <span class="kw">elif</span> choice == <span class="str">'10'</span>: planner.<span class="fn">load_data</span>()
+        <span class="kw">elif</span> choice == <span class="str">'11'</span>:
+            <span class="fn">print</span>(<span class="str">'Exiting... Goodbye!'</span>)
+            <span class="kw">break</span>
+
+<span class="kw">if</span> __name__ == <span class="str">'__main__'</span>:
+    <span class="fn">main</span>()</pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PERFORMANCE -->
+<section id="performance">
+  <p class="section-eyebrow">Grade Calculator</p>
+  <h2 class="section-title">Performance Analysis Demo</h2>
+  <p class="section-body">Enter study hours and tasks completed to see the productivity score and grade — exactly as the Performance class calculates it.</p>
+  <div style="margin-top:2.5rem; display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-end;">
+    <div>
+      <label style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.08em;font-family:'JetBrains Mono',monospace">Study Hours</label>
+      <input id="inp-hours" type="number" min="0" max="24" value="8"
+        style="background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:1rem;width:140px;outline:none;">
+    </div>
+    <div>
+      <label style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.08em;font-family:'JetBrains Mono',monospace">Tasks Completed</label>
+      <input id="inp-tasks" type="number" min="0" max="50" value="7"
+        style="background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:1rem;width:140px;outline:none;">
+    </div>
+    <button onclick="calcPerf()" class="btn-primary">Calculate</button>
+  </div>
+  <div id="perf-result" class="perf-cards" style="margin-top:2rem;"></div>
+  <div class="perf-bar-wrap" id="perf-bars" style="display:none;margin-top:2rem;max-width:480px;">
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.08em;font-family:'JetBrains Mono',monospace">Grade Thresholds</p>
+    <div class="perf-bar-row"><div class="perf-bar-label">A+ (score ≥ 9)</div><div class="perf-bar"><div class="perf-bar-fill" id="bar-ap" style="background:var(--cyan);width:90%"></div></div><div class="perf-bar-val">9.0</div></div>
+    <div class="perf-bar-row"><div class="perf-bar-label">A (score ≥ 8)</div><div class="perf-bar"><div class="perf-bar-fill" id="bar-a" style="background:#30D158;width:80%"></div></div><div class="perf-bar-val">8.0</div></div>
+    <div class="perf-bar-row"><div class="perf-bar-label">B (score ≥ 7)</div><div class="perf-bar"><div class="perf-bar-fill" id="bar-b" style="background:var(--amber);width:70%"></div></div><div class="perf-bar-val">7.0</div></div>
+    <div class="perf-bar-row"><div class="perf-bar-label">C (score ≥ 6)</div><div class="perf-bar"><div class="perf-bar-fill" id="bar-c" style="background:#FF9F0A;width:60%"></div></div><div class="perf-bar-val">6.0</div></div>
+    <div class="perf-bar-row"><div class="perf-bar-label">D (score &lt; 6)</div><div class="perf-bar"><div class="perf-bar-fill" id="bar-d" style="background:var(--rose);width:40%"></div></div><div class="perf-bar-val">&lt; 6</div></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- TEAM -->
+<section id="team">
+  <p class="section-eyebrow">Project Team</p>
+  <h2 class="section-title">Built by CSE-DS Students</h2>
+  <p class="section-body">Department of Computer Science (Data Science) · NIET, Greater Noida · Semester 2</p>
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="team-avatar">K</div>
+      <div class="team-name">Kshitij Sharma</div>
+      <div class="team-role">Core Architecture &amp; OOP Design</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar" style="background:linear-gradient(135deg,#5C6BC0,#7E57C2)">H</div>
+      <div class="team-name">Hemant Sharma</div>
+      <div class="team-role">Modules &amp; File Handling</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar" style="background:linear-gradient(135deg,#26A69A,#00897B)">G</div>
+      <div class="team-name">Gunesh Gupta</div>
+      <div class="team-role">Exception Handling &amp; Testing</div>
+    </div>
+    
+    
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">Smart Study Planner &nbsp;·&nbsp; Python OOP Project &nbsp;·&nbsp; B.Tech CSE-DS, NIET Greater Noida</div>
+  <div class="footer-right">11 Classes &nbsp;·&nbsp; 8 Modules &nbsp;·&nbsp; Python 3.x</div>
+</footer>
+
+<script>
+// ── TAB SWITCHER ──
+function switchTab(id) {
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+// ── TERMINAL DEMO ──
+const term = document.getElementById('terminal');
+const DEMOS = {
+  menu: [
+    { t: 0,   html: '<span class="prompt">$ python main.py</span>\n' },
+    { t: 300, html: '\n<span class="white">========== SMART STUDY PLANNER ==========</span>\n' },
+    { t: 400, html: ' 1. Student Management\n' },
+    { t: 450, html: ' 2. Subject Management\n' },
+    { t: 500, html: ' 3. Study Schedule Management\n' },
+    { t: 550, html: ' 4. Assignment Management\n' },
+    { t: 600, html: ' 5. Goal Management\n' },
+    { t: 650, html: ' 6. Reminder Management\n' },
+    { t: 700, html: ' 7. Performance Analysis\n' },
+    { t: 750, html: ' 8. Report Generation\n' },
+    { t: 800, html: ' 9. Save Data\n' },
+    { t: 850, html: '10. Load Data\n' },
+    { t: 900, html: '11. Exit\n' },
+    { t: 950, html: '<span class="white">==========================================</span>\n' },
+    { t:1000, html: '<span class="prompt">Enter your choice: </span><span class="cursor">▌</span>\n' }
+  ],
+  register: [
+    { t: 0,   html: '<span class="prompt">Enter your choice: </span>1\n\n' },
+    { t: 200, html: '<span class="white">--- Student Management ---</span>\n1. Register Student   2. View All Students   3. Back\n' },
+    { t: 400, html: '<span class="prompt">Choice: </span>1\n' },
+    { t: 600, html: '<span class="prompt">Student ID: </span>S001\n' },
+    { t: 700, html: '<span class="prompt">Name: </span>Kshitij Sharma\n' },
+    { t: 800, html: '<span class="prompt">Email: </span>kshitij@niet.ac.in\n' },
+    { t: 900, html: '<span class="prompt">Mobile: </span>9876543210\n' },
+    { t:1000, html: '<span class="prompt">Course: </span>B.Tech CSE-DS\n' },
+    { t:1100, html: '<span class="prompt">Semester: </span>2\n\n' },
+    { t:1300, html: '<span class="ok">✓ Student \'Kshitij Sharma\' registered successfully.</span>\n' },
+    { t:1500, html: '<span class="log">  → Stored as students[\'S001\'] in O(1) dict</span>\n' },
+  ],
+  schedule: [
+    { t: 0,   html: '<span class="prompt">Enter your choice: </span>3\n\n' },
+    { t: 200, html: '<span class="white">--- Study Schedule Management ---</span>\n' },
+    { t: 400, html: '<span class="prompt">Student ID: </span>S001\n' },
+    { t: 500, html: '<span class="prompt">Plan ID: </span>P001\n' },
+    { t: 600, html: '<span class="prompt">Study Hours: </span>3.5\n\n' },
+    { t: 900, html: '<span class="log">[LOG] Calling generate_plan ...   ← @log_action decorator fires</span>\n' },
+    { t:1100, html: '<span class="white">Plan [P001] generated for 2026-06-13  -  3.5 hrs</span>\n' },
+    { t:1300, html: '<span class="log">[LOG] generate_plan completed.    ← decorator wrapper closes</span>\n\n' },
+    { t:1500, html: '<span class="ok">✓ Schedule created for Kshitij Sharma.</span>\n' },
+    { t:1700, html: '<span class="log">  → Plan appended to student.schedule list</span>\n' },
+  ],
+  assignment: [
+    { t: 0,   html: '<span class="prompt">Enter your choice: </span>4\n\n' },
+    { t: 200, html: '<span class="white">--- Assignment Management ---</span>\n1. Add   2. View Pending   3. Mark Completed   4. Back\n' },
+    { t: 400, html: '<span class="prompt">Choice: </span>1\n' },
+    { t: 500, html: '<span class="prompt">Assignment ID: </span>A001\n' },
+    { t: 600, html: '<span class="prompt">Title: </span>Python OOP Lab Assignment\n' },
+    { t: 700, html: '<span class="prompt">Due Date (YYYY-MM-DD): </span>2026-06-20\n\n' },
+    { t: 900, html: '<span class="log">[LOG] Assignment action: add_assignment   ← @log_submission</span>\n' },
+    { t:1100, html: "<span class=\"ok\">Assignment 'Python OOP Lab Assignment' added. Deadline: 2026-06-20</span>\n\n" },
+    { t:1300, html: '<span class="prompt">Choice: </span>2\n\n' },
+    { t:1500, html: '<span class="white">Pending: [\'Python OOP Lab Assignment\']</span>\n' },
+    { t:1700, html: '<span class="log">  → is_overdue() → False (due date not passed)</span>\n' },
+  ],
+  performance: [
+    { t: 0,   html: '<span class="prompt">Enter your choice: </span>7\n\n' },
+    { t: 200, html: '<span class="white">--- Performance Analysis ---</span>\n' },
+    { t: 400, html: '<span class="prompt">Performance ID: </span>PF001\n' },
+    { t: 500, html: '<span class="prompt">Study Hours: </span>8\n' },
+    { t: 600, html: '<span class="prompt">Completed Tasks: </span>7\n\n' },
+    { t: 900, html: '<span class="log">  → productivity_score(8, 7) = (7/8) × 10 = 8.75   [@staticmethod]</span>\n' },
+    { t:1100, html: '<span class="log">  → calculate_grade(8.75) → \'A\'                      [@staticmethod]</span>\n\n' },
+    { t:1300, html: '<span class="white">Performance[PF001]: Score = <span class="amber">8.75</span>,  Grade = <span class="ok">A</span></span>\n' },
+    { t:1500, html: '<span class="white">Overall Stats: {\'total_hours\': 8, \'total_tasks\': 7}  [@classmethod]</span>\n' },
+  ],
+  report: [
+    { t: 0,   html: '<span class="prompt">Enter your choice: </span>8\n\n' },
+    { t: 200, html: '<span class="white">--- Report Generation ---</span>\n' },
+    { t: 400, html: '<span class="prompt">Report ID: </span>R001\n' },
+    { t: 500, html: '<span class="prompt">Types: Daily, Weekly, Monthly, Performance</span>\n' },
+    { t: 600, html: '<span class="prompt">Type: </span>Weekly\n\n' },
+    { t: 900, html: '<span class="log">[LOG] Generating report via generate_report ...  ← @log_report</span>\n' },
+    { t:1100, html: '<span class="white">Weekly Report [R001]  -  2026-06-13</span>\n' },
+    { t:1200, html: '    Sample report data for Weekly\n' },
+    { t:1400, html: '<span class="log">[LOG] Report generation complete.</span>\n\n' },
+    { t:1600, html: '<span class="ok">✓ Report exported to report_R001_2026-06-13.csv</span>\n' },
+    { t:1800, html: '<span class="log">  → Written via csv.writer with auto-generated filename</span>\n' },
+  ],
+  save: [
+    { t: 0,   html: '<span class="prompt">Enter your choice: </span>9\n\n' },
+    { t: 400, html: '<span class="log">  → Serializing students dict to JSON-safe dicts...</span>\n' },
+    { t: 600, html: '<span class="log">  → Writing via json.dump(data, f, indent=2)...</span>\n\n' },
+    { t: 900, html: '<span class="ok">✓ Data saved to data.json</span>\n\n' },
+    { t:1100, html: '<span class="prompt">Enter your choice: </span>10\n\n' },
+    { t:1400, html: '<span class="log">  → os.path.exists(\'data.json\') → True</span>\n' },
+    { t:1600, html: '<span class="log">  → json.load(f) → student + assignment records</span>\n\n' },
+    { t:1900, html: '<span class="ok">✓ Data loaded from data.json</span>\n' },
+  ],
+  error: [
+    { t: 0,   html: '<span class="prompt">Enter your choice: </span>3\n' },
+    { t: 200, html: '<span class="prompt">Student ID: </span>INVALID_ID\n\n' },
+    { t: 500, html: '<span class="err">Error: Invalid Student ID: INVALID_ID</span>\n' },
+    { t: 700, html: '<span class="log">  → ValueError raised in create_schedule() — fail fast</span>\n\n' },
+    { t: 900, html: '<span class="prompt">Enter your choice: </span>10\n\n' },
+    { t:1200, html: '<span class="err">Error: Data file not found: data.json</span>\n' },
+    { t:1400, html: '<span class="log">  → FileNotFoundError from load_data()</span>\n\n' },
+    { t:1600, html: '<span class="log">Reminder type \'Holiday\' →</span>\n' },
+    { t:1800, html: "<span class=\"err\">ValueError: Invalid reminder type. Choose from ('Study', 'Exam', 'Assignment', 'Goal')</span>\n" },
+    { t:2000, html: '<span class="log">  → TYPES tuple enforcement in Reminder.__init__()</span>\n' },
+  ]
+};
+
+let timers = [];
+function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+function runDemo(key) {
+  clearTimers();
+  term.innerHTML = '';
+  const steps = DEMOS[key];
+  steps.forEach(({ t, html }) => {
+    timers.push(setTimeout(() => {
+      term.innerHTML += html;
+      term.scrollTop = term.scrollHeight;
+    }, t));
+  });
+}
+
+// Start with menu on load
+window.addEventListener('load', () => runDemo('menu'));
+
+// ── PERFORMANCE CALC ──
+function calcPerf() {
+  const hours = parseFloat(document.getElementById('inp-hours').value) || 0;
+  const tasks  = parseInt(document.getElementById('inp-tasks').value)  || 0;
+  const score  = hours === 0 ? 0 : Math.round((tasks / hours) * 10 * 100) / 100;
+  let grade, color;
+  if (score >= 9)      { grade = 'A+'; color = 'var(--cyan)'; }
+  else if (score >= 8) { grade = 'A';  color = '#30D158'; }
+  else if (score >= 7) { grade = 'B';  color = 'var(--amber)'; }
+  else if (score >= 6) { grade = 'C';  color = '#FF9F0A'; }
+  else                 { grade = 'D';  color = 'var(--rose)'; }
+
+  document.getElementById('perf-result').innerHTML = `
+    <div class="perf-card">
+      <div class="perf-score" style="color:${color}">${score}</div>
+      <div class="perf-grade" style="color:${color}">Productivity Score</div>
+      <div class="perf-label">(tasks / hours) × 10</div>
+    </div>
+    <div class="perf-card">
+      <div class="perf-score" style="color:${color}">${grade}</div>
+      <div class="perf-grade" style="color:${color}">Letter Grade</div>
+      <div class="perf-label">Performance.calculate_grade(${score})</div>
+    </div>
+    <div class="perf-card">
+      <div class="perf-score" style="color:var(--muted);font-size:1.8rem">${hours}h / ${tasks}</div>
+      <div class="perf-grade" style="color:var(--muted)">Hours / Tasks</div>
+      <div class="perf-label">overall_statistics() input</div>
+    </div>
+  `;
+  document.getElementById('perf-bars').style.display = 'block';
+}
+calcPerf();
+
+// ── SCROLL-TRIGGERED BAR ANIMATION ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.perf-bar-fill').forEach(b => {
+        b.style.width = b.style.width; // re-trigger
+      });
+    }
+  });
+}, { threshold: 0.3 });
+const pbw = document.querySelector('.perf-bar-wrap');
+if (pbw) observer.observe(pbw);
+</script>
+</body>
+</html>
